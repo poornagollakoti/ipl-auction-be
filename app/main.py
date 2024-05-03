@@ -1,3 +1,65 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, Query
+
+app = FastAPI()
+
+# Allow requests from your React frontend domain
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://delightful-field-05b2ad510.5.azurestaticapps.net/"],  # Update with your frontend URL
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
+
+@app.get("/auction-data")
+async def get_auction_data(
+    player: str = Query(None), 
+    nationality: str = Query(None), 
+    type: str = Query(None), 
+    team: str = Query(None), 
+    min_price: int = Query(None),
+    max_price: int = Query(None),
+    sort_by: str = None,
+    sort_order: str = None,
+    limit: int = Query(10, ge=1, le=100),
+    ):
+    filtered_data = ipl_auction_data
+
+    if player:
+        filtered_data = [item for item in filtered_data if item["player"] == player]
+
+    if nationality:
+        filtered_data = [item for item in filtered_data if item["nationality"] == nationality]
+
+    if type:
+        filtered_data = [item for item in filtered_data if item["type"] == type]
+
+    if team:
+        filtered_data = [item for item in filtered_data if item["team"] == team]
+
+    if min_price:
+        filtered_data = [item for item in filtered_data if item["price"] >= min_price]
+
+    if max_price:
+        filtered_data = [item for item in filtered_data if item["price"] <= max_price]
+
+    # Apply sorting if provided
+    if sort_by:
+        if sort_order and sort_order.lower() == "desc":
+            reverse = True
+        else:
+            reverse = False
+        filtered_data = sorted(filtered_data, key=lambda x: x[sort_by], reverse=reverse)
+
+
+    # Apply limit
+    if limit:
+        filtered_data = filtered_data[:limit]
+
+    return filtered_data
+
 ipl_auction_data =  [
     {
       "player": "Daryl Mitchell",
